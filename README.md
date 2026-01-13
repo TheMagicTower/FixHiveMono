@@ -31,7 +31,7 @@ FixHive is a Claude Code plugin that provides slash commands, MCP tools, and int
 ### Option 1: Install as Plugin (Recommended)
 
 ```bash
-claude plugin add github:TheMagicTower/FixHive-ClaudeCode
+claude plugin add github:TheMagicTower/FixHiveMono
 ```
 
 This installs the complete plugin with slash commands and MCP tools.
