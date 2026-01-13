@@ -1,10 +1,12 @@
 /**
  * 설정 로더 - 환경 변수에서 설정 로드 및 검증
+ *
+ * CodeCaseDB v2.0: device_id 기반 식별
  */
 
-import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { getDeviceId } from '@the-magic-tower/fixhive-shared';
 import type { FixHiveConfig } from '../types/index.js';
 import { configSchema, validateSupabaseConfig } from './schema.js';
 
@@ -31,7 +33,6 @@ export function loadConfig(): FixHiveConfig {
   const rawConfig = {
     supabaseUrl: process.env.FIXHIVE_SUPABASE_URL,
     supabaseKey: process.env.FIXHIVE_SUPABASE_KEY,
-    contributorId: process.env.FIXHIVE_CONTRIBUTOR_ID,
     localDbPath: process.env.FIXHIVE_DB_PATH || '~/.fixhive/data.db',
     logLevel: process.env.FIXHIVE_LOG_LEVEL || 'info',
   };
@@ -42,13 +43,13 @@ export function loadConfig(): FixHiveConfig {
   // Supabase 설정 검증
   validateSupabaseConfig(parsed);
 
-  // 기여자 ID 자동 생성
-  const contributorId = parsed.contributorId || randomUUID();
+  // device_id 로드 (공유 패키지에서)
+  const deviceId = getDeviceId();
 
   cachedConfig = {
     supabaseUrl: parsed.supabaseUrl,
     supabaseKey: parsed.supabaseKey,
-    contributorId,
+    deviceId,
     localDbPath: expandPath(parsed.localDbPath),
     logLevel: parsed.logLevel,
   };

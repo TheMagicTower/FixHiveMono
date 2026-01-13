@@ -1,5 +1,7 @@
 /**
  * MCP 서버 초기화 - FixHive MCP Server
+ *
+ * CodeCaseDB v2.0
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 /**

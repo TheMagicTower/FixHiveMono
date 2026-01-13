@@ -1,91 +1,45 @@
 /**
  * FixHive TypeScript 타입 정의
+ *
+ * CodeCaseDB v2.0: 공유 타입 재사용
  */
-export type ErrorStatus = 'unresolved' | 'resolved' | 'uploaded';
-export interface DetectedError {
-    id: string;
-    message: string;
-    messageHash: string;
-    fullOutput?: string;
-    language?: string;
-    framework?: string;
-    toolName: string;
-    status: ErrorStatus;
-    createdAt: Date;
-    resolvedAt?: Date;
-}
-export interface Solution {
-    id: string;
-    errorId: string;
-    resolution: string;
-    resolutionCode?: string;
-    upvotes: number;
-    downvotes: number;
-    contributorId: string;
-    createdAt: Date;
-}
-export interface SearchResult {
-    error: DetectedError;
-    solutions: Solution[];
-    similarity: number;
-}
-export interface SearchQuery {
-    errorMessage: string;
-    language?: string;
-    framework?: string;
-    limit?: number;
-}
-export interface PendingSync {
-    id: string;
-    type: 'error' | 'solution' | 'vote';
-    data: unknown;
-    createdAt: Date;
-    retryCount: number;
-}
-export interface Stats {
-    totalErrors: number;
-    resolvedErrors: number;
-    uploadedSolutions: number;
-    helpfulVotes: number;
-}
-export interface Vote {
-    knowledgeId: string;
-    helpful: boolean;
-    contributorId: string;
-    createdAt: Date;
-}
+export type { Device, CaseGroup, CaseVariant, Resolution, Vote, Environment, SearchCasesInput, SearchCasesResult, SearchCasesOutput, ReportResolutionInput, ReportResolutionOutput, VoteInput, VoteOutput, RankedVariant, FilterResult, } from '@the-magic-tower/fixhive-shared';
 export interface FixHiveConfig {
     supabaseUrl?: string;
     supabaseKey?: string;
-    contributorId: string;
+    deviceId: string;
     localDbPath: string;
     logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
-export interface SearchToolInput {
-    errorMessage: string;
-    language?: string;
+export interface LocalCachedCase {
+    groupId: string;
+    errorSignature: string;
+    errorSignatureHash: string;
+    language: string;
     framework?: string;
-    limit?: number;
+    cachedAt: Date;
+    expiresAt: Date;
 }
-export interface ResolveToolInput {
-    errorId: string;
-    resolution: string;
-    resolutionCode?: string;
-    upload?: boolean;
+export interface LocalCachedVariant {
+    id: string;
+    groupId: string;
+    environment: string;
+    cause?: string;
+    solution?: string;
+    solutionSteps?: string;
+    successRate: number;
+    score: number;
+    cachedAt: Date;
 }
-export interface ListToolInput {
-    status?: ErrorStatus;
-    limit?: number;
-}
-export interface VoteToolInput {
-    knowledgeId: string;
-    helpful: boolean;
-}
-export interface HelpfulToolInput {
-    knowledgeId: string;
-}
-export interface ReportToolInput {
-    knowledgeId: string;
-    reason?: string;
+export interface LocalPendingResolution {
+    id: string;
+    errorMessage: string;
+    errorSignature: string;
+    environment: string;
+    cause?: string;
+    solution?: string;
+    solved: boolean;
+    createdAt: Date;
+    syncedAt?: Date;
 }
 //# sourceMappingURL=index.d.ts.map

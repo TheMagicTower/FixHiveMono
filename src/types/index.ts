@@ -1,115 +1,68 @@
 /**
  * FixHive TypeScript 타입 정의
+ *
+ * CodeCaseDB v2.0: 공유 타입 재사용
  */
 
-// 에러 상태
-export type ErrorStatus = 'unresolved' | 'resolved' | 'uploaded';
-
-// 감지된 에러
-export interface DetectedError {
-  id: string;
-  message: string;
-  messageHash: string;
-  fullOutput?: string;
-  language?: string;
-  framework?: string;
-  toolName: string;
-  status: ErrorStatus;
-  createdAt: Date;
-  resolvedAt?: Date;
-}
-
-// 해결책
-export interface Solution {
-  id: string;
-  errorId: string;
-  resolution: string;
-  resolutionCode?: string;
-  upvotes: number;
-  downvotes: number;
-  contributorId: string;
-  createdAt: Date;
-}
-
-// 검색 결과
-export interface SearchResult {
-  error: DetectedError;
-  solutions: Solution[];
-  similarity: number;
-}
-
-// 검색 쿼리
-export interface SearchQuery {
-  errorMessage: string;
-  language?: string;
-  framework?: string;
-  limit?: number;
-}
-
-// 동기화 대기열 항목
-export interface PendingSync {
-  id: string;
-  type: 'error' | 'solution' | 'vote';
-  data: unknown;
-  createdAt: Date;
-  retryCount: number;
-}
-
-// 통계
-export interface Stats {
-  totalErrors: number;
-  resolvedErrors: number;
-  uploadedSolutions: number;
-  helpfulVotes: number;
-}
-
-// 투표
-export interface Vote {
-  knowledgeId: string;
-  helpful: boolean;
-  contributorId: string;
-  createdAt: Date;
-}
+// 공유 패키지에서 타입 재export
+export type {
+  Device,
+  CaseGroup,
+  CaseVariant,
+  Resolution,
+  Vote,
+  Environment,
+  SearchCasesInput,
+  SearchCasesResult,
+  SearchCasesOutput,
+  ReportResolutionInput,
+  ReportResolutionOutput,
+  VoteInput,
+  VoteOutput,
+  RankedVariant,
+  FilterResult,
+} from '@the-magic-tower/fixhive-shared';
 
 // 설정
 export interface FixHiveConfig {
   supabaseUrl?: string;
   supabaseKey?: string;
-  contributorId: string;
+  deviceId: string;
   localDbPath: string;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 
-// MCP 도구 입력 타입
-export interface SearchToolInput {
-  errorMessage: string;
-  language?: string;
+// 로컬 캐시용 타입
+export interface LocalCachedCase {
+  groupId: string;
+  errorSignature: string;
+  errorSignatureHash: string;
+  language: string;
   framework?: string;
-  limit?: number;
+  cachedAt: Date;
+  expiresAt: Date;
 }
 
-export interface ResolveToolInput {
-  errorId: string;
-  resolution: string;
-  resolutionCode?: string;
-  upload?: boolean;
+export interface LocalCachedVariant {
+  id: string;
+  groupId: string;
+  environment: string; // JSON
+  cause?: string;
+  solution?: string;
+  solutionSteps?: string; // JSON
+  successRate: number;
+  score: number;
+  cachedAt: Date;
 }
 
-export interface ListToolInput {
-  status?: ErrorStatus;
-  limit?: number;
-}
-
-export interface VoteToolInput {
-  knowledgeId: string;
-  helpful: boolean;
-}
-
-export interface HelpfulToolInput {
-  knowledgeId: string;
-}
-
-export interface ReportToolInput {
-  knowledgeId: string;
-  reason?: string;
+export interface LocalPendingResolution {
+  id: string;
+  errorMessage: string;
+  errorSignature: string;
+  environment: string; // JSON
+  cause?: string;
+  solution?: string;
+  solved: boolean;
+  createdAt: Date;
+  syncedAt?: Date;
 }

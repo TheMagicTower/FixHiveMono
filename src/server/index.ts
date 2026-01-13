@@ -1,5 +1,7 @@
 /**
  * MCP 서버 초기화 - FixHive MCP Server
+ *
+ * CodeCaseDB v2.0
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -12,7 +14,6 @@ import {
 import { logger } from '../utils/logger.js';
 import { loadConfig } from '../config/index.js';
 import { getToolList, handleToolCall } from './tools/index.js';
-import { setServerInstance } from '../cloud/similarity.js';
 
 /**
  * MCP 서버 생성 및 설정
@@ -21,7 +22,7 @@ export function createServer(): Server {
   const server = new Server(
     {
       name: 'fixhive',
-      version: '0.1.0',
+      version: '0.2.0',
     },
     {
       capabilities: {
@@ -29,9 +30,6 @@ export function createServer(): Server {
       },
     }
   );
-
-  // similarity.ts에서 LLM 호출할 수 있도록 서버 인스턴스 설정
-  setServerInstance(server);
 
   // 도구 목록 핸들러
   server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -60,8 +58,9 @@ export async function startServer(): Promise<void> {
   const config = loadConfig();
 
   logger.info('Starting FixHive MCP server', {
-    version: '0.1.0',
+    version: '0.2.0',
     cloudEnabled: !!config.supabaseUrl,
+    deviceId: config.deviceId.slice(0, 8) + '...',
   });
 
   const server = createServer();

@@ -9,21 +9,39 @@
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
   </a>
-  <img src="https://img.shields.io/badge/Node.js-18%20%7C%2020%20%7C%2022-green" alt="Node.js Version">
+  <img src="https://img.shields.io/badge/Node.js-20%20%7C%2022-green" alt="Node.js Version">
 </p>
 
-> Community-based Error Knowledge Sharing for Claude Code
+> Community-based Error Knowledge Sharing for Claude Code (CodeCaseDB v2.0)
 
 FixHive is a Claude Code MCP server that automatically captures errors during development sessions, queries a community knowledge base for solutions, and shares resolved errors with other developers.
 
 ## Features
 
-- **Auto Error Detection**: Automatically detects errors from tool outputs (bash, edit, etc.)
 - **Cloud Knowledge Base**: Search community solutions using semantic similarity (pgvector)
-- **Local Caching**: SQLite-based local storage for offline access
+- **AI-Guided Normalization**: Normalize error signatures for better matching
+- **Environment Matching**: Solutions ranked by language, framework, and package compatibility
 - **Privacy Filtering**: Automatically redacts sensitive data (API keys, paths, emails)
-- **Real-time Sync**: Immediate cloud communication on error/resolution
-- **Duplicate Prevention**: Smart deduplication using embeddings and hash matching
+- **Community Voting**: Upvote/downvote solutions to help identify the best fixes
+
+## Upgrading from v1.x
+
+If you're upgrading from v1.x, please read the [Migration Guide](MIGRATION.md) for important changes:
+
+- **Tool names changed**: `fixhive_search` → `fixhive_search_cases`, etc.
+- **Local storage removed**: No more `.fixhive/` directory
+- **Automatic device ID**: No need to set `FIXHIVE_CONTRIBUTOR_ID`
+- **Environment matching**: Better solution ranking based on your stack
+
+Quick upgrade:
+
+```bash
+# Update package
+npm install -g @the-magic-tower/fixhive-claude-code@latest
+
+# Remove old env vars (optional)
+# FIXHIVE_CONTRIBUTOR_ID and OPENAI_API_KEY are no longer needed
+```
 
 ## Installation
 
@@ -66,22 +84,20 @@ claude
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        FixHive Flow                             │
+│                    FixHive Flow (v2.0)                          │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │   1. Error Occurs                                               │
 │      ↓                                                          │
-│   2. Auto Detection (MCP tool hook)                             │
+│   2. AI Normalizes Error Signature                              │
 │      ↓                                                          │
-│   3. Privacy Filter (redact API keys, paths, etc.)              │
+│   3. Cloud Search (Supabase + pgvector)                         │
 │      ↓                                                          │
-│   4. Local Storage (SQLite)                                     │
+│   4. Environment Matching (language, framework, packages)       │
 │      ↓                                                          │
-│   5. Cloud Search (Supabase + pgvector)                         │
+│   5. Display Ranked Solutions (similarity + votes)              │
 │      ↓                                                          │
-│   6. Display Solutions (ranked by similarity & votes)           │
-│      ↓                                                          │
-│   7. Resolution → Upload to Community                           │
+│   6. Resolution → Upload to Community                           │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -94,105 +110,81 @@ Environment variables to customize behavior:
 # Use your own Supabase instance instead of community
 FIXHIVE_SUPABASE_URL=https://your-project.supabase.co
 FIXHIVE_SUPABASE_KEY=your-anon-key
-
-# Enable semantic search (recommended)
-OPENAI_API_KEY=sk-...
-
-# Custom contributor ID (auto-generated if not set)
-FIXHIVE_CONTRIBUTOR_ID=your-contributor-id
 ```
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `FIXHIVE_SUPABASE_URL` | Community DB | Your Supabase project URL |
 | `FIXHIVE_SUPABASE_KEY` | Community Key | Your Supabase anon key |
-| `OPENAI_API_KEY` | None | Enables semantic similarity search |
-| `FIXHIVE_CONTRIBUTOR_ID` | Auto-generated | Your unique contributor ID |
 
 ## Available Tools
 
-### `fixhive_search`
+### `fixhive_search_cases`
 
 Search the knowledge base for error solutions.
 
 ```typescript
 // Arguments
 {
-  errorMessage: string;   // Required: The error message to search for
-  language?: string;      // Optional: Programming language (typescript, python, etc.)
-  framework?: string;     // Optional: Framework (react, nextjs, express, etc.)
-  limit?: number;         // Optional: Maximum results (default: 5)
+  error_message: string;     // Required: The error message to search for
+  error_signature?: string;  // Optional: Normalized signature with placeholders
+  language?: string;         // Optional: Programming language (typescript, python, etc.)
+  framework?: string;        // Optional: Framework (react, nextjs, express, etc.)
+  packages?: object;         // Optional: Key dependencies with versions
+  limit?: number;            // Optional: Maximum results (default: 5)
 }
 ```
 
-### `fixhive_resolve`
+### `fixhive_report_resolution`
 
-Mark an error as resolved and share the solution.
+Report an error resolution to the community.
 
 ```typescript
 // Arguments
 {
-  errorId: string;        // Required: Error ID from fixhive_list
-  resolution: string;     // Required: Description of how the error was resolved
-  resolutionCode?: string; // Optional: Code fix or diff
-  upload?: boolean;       // Optional: Upload to community (default: true)
-}
-```
-
-### `fixhive_list`
-
-List errors detected in the current session.
-
-```typescript
-// Arguments
-{
-  status?: 'unresolved' | 'resolved' | 'uploaded';  // Optional: Filter by status
-  limit?: number;                                    // Optional: Maximum results (default: 10)
+  error_message: string;      // Required: Original error message
+  error_signature: string;    // Required: Normalized signature
+  solution?: string;          // Optional: How the error was resolved
+  cause?: string;             // Optional: Root cause of the error
+  solution_steps?: string[];  // Optional: Step-by-step resolution
+  code_diff?: string;         // Optional: Code changes that fixed the issue
+  language?: string;          // Optional: Programming language
+  framework?: string;         // Optional: Framework
+  packages?: object;          // Optional: Key dependencies
+  used_variant_id?: string;   // Optional: If existing solution helped
 }
 ```
 
 ### `fixhive_vote`
 
-Upvote or downvote a solution.
+Vote on a solution's quality.
 
 ```typescript
 // Arguments
 {
-  knowledgeId: string;  // Required: Knowledge entry ID
-  helpful: boolean;     // Required: true for upvote, false for downvote
+  variant_id: string;  // Required: The variant ID to vote on
+  value: 'up' | 'down' | 'report';  // Required: Vote type
+  reason?: string;     // Required when reporting: Explain why
 }
 ```
 
-### `fixhive_stats`
+## Error Signature Normalization
 
-View usage statistics.
+When searching or reporting errors, normalize the message by replacing variable parts with placeholders:
 
-```typescript
-// No arguments required
-```
+| Target | Placeholder | Example |
+|--------|-------------|---------|
+| Class names | `{class}` | `UserController` → `{class}` |
+| File names | `{file}` | `index.ts:42` → `{file}:{id}` |
+| Numeric IDs | `{id}` | `user_id: 12345` → `user_id: {id}` |
+| UUIDs | `{uuid}` | `550e8400-e29b-...` → `{uuid}` |
+| Timestamps | `{timestamp}` | `2024-01-15T10:30:00Z` → `{timestamp}` |
+| File paths | `{path}` | `/home/user/project/` → `{path}` |
+| DB identifiers | `{table}.{column}` | `users.email` → `{table}.{column}` |
+| Routes | `{route}` | `/api/users/123` → `{route}` |
+| Views | `{view}` | `admin.users.index` → `{view}` |
 
-### `fixhive_helpful`
-
-Report that a solution was helpful.
-
-```typescript
-// Arguments
-{
-  knowledgeId: string;  // Required: Knowledge entry ID that helped
-}
-```
-
-### `fixhive_report`
-
-Report inappropriate content.
-
-```typescript
-// Arguments
-{
-  knowledgeId: string;  // Required: Knowledge entry ID to report
-  reason?: string;      // Optional: Reason for reporting
-}
-```
+**Keep unchanged**: Framework classes, error codes (`SQLSTATE`, `TypeError`), package names
 
 ## Example Workflow
 
@@ -201,19 +193,16 @@ Report inappropriate content.
    $ npm run build
    > error TS2307: Cannot find module '@/components/Button'
 
-2. FixHive automatically:
-   - Detects the error
-   - Records it locally
-   - Searches for solutions
-   - Displays matching community solutions
+2. Search for solutions
+   Use fixhive_search_cases with normalized error signature
 
-3. Apply the fix from community solution
-   $ npm install @/components/Button --save
+3. Apply the top-ranked solution
 
-4. Mark as resolved and share
-   fixhive_resolve <error-id> "Missing alias configuration in tsconfig.json. Added paths mapping."
+4. Report your resolution
+   Use fixhive_report_resolution to share how you fixed it
 
-5. Your solution helps other developers!
+5. Vote on solutions that helped
+   Use fixhive_vote to upvote helpful solutions
 ```
 
 ## Privacy
@@ -225,7 +214,7 @@ FixHive automatically filters sensitive information before sharing:
 | API Keys | `sk-abc123...`, `ghp_xxx...` | `[API_KEY_REDACTED]` |
 | Tokens | `Bearer eyJ...`, `xoxb-...` | `[TOKEN_REDACTED]` |
 | Emails | `user@example.com` | `[EMAIL_REDACTED]` |
-| Paths | `/Users/john/projects/...` | `~/projects/...` |
+| Paths | `/Users/john/projects/...` | `[PATH_REDACTED]` |
 | Env Vars | `DATABASE_URL=postgres://...` | `[ENV_REDACTED]` |
 | Connection Strings | `mongodb://user:pass@...` | `[CONNECTION_STRING_REDACTED]` |
 | IP Addresses | `192.168.1.100` | `[IP_REDACTED]` |
@@ -248,7 +237,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 ### 3. Run Setup Script
 
-Copy and run the contents of `scripts/setup-supabase.sql` in the SQL Editor.
+Copy and run the contents of `scripts/setup-codecasedb-v2.sql` in the SQL Editor.
 
 ### 4. Configure Environment
 
@@ -263,23 +252,44 @@ FIXHIVE_SUPABASE_KEY=your-anon-key
 ```
 @the-magic-tower/fixhive-claude-code
 ├── src/
+│   ├── index.ts              # Entry point
 │   ├── server/
 │   │   ├── index.ts          # MCP server definition
-│   │   └── tools.ts          # Custom tools (7 tools)
-│   ├── core/
-│   │   ├── error-detector.ts # Multi-signal error detection
-│   │   ├── privacy-filter.ts # Sensitive data redaction
-│   │   └── hash.ts           # Fingerprinting & deduplication
-│   ├── storage/
-│   │   ├── local-store.ts    # SQLite local storage
-│   │   └── migrations.ts     # Database migrations
-│   ├── cloud/
-│   │   ├── client.ts         # Supabase client
-│   │   └── embedding.ts      # OpenAI embeddings
-│   └── types/
-│       └── index.ts          # TypeScript definitions
-└── scripts/
-    └── setup-supabase.sql    # Cloud schema
+│   │   └── tools/
+│   │       ├── index.ts      # Tool registry (3 tools)
+│   │       ├── search-cases.tool.ts
+│   │       ├── report-resolution.tool.ts
+│   │       └── vote.tool.ts
+│   ├── config/
+│   │   ├── index.ts          # Config loader
+│   │   └── schema.ts         # Zod validation
+│   └── utils/
+│       ├── logger.ts         # Pino logger
+│       └── errors.ts         # Error handling
+│
+└── Shared Package (@the-magic-tower/fixhive-shared)
+    ├── types/                # CaseGroup, CaseVariant, Resolution, Vote
+    ├── device/               # device_id management
+    ├── cloud/                # Supabase client, ranking algorithm
+    └── utils/                # hash, privacy filtering
+```
+
+## Device Identification
+
+FixHive uses a persistent device ID stored in `~/.codecasedb/device_id`. This ID:
+- Is automatically generated on first use (UUID v4)
+- Persists across sessions and projects
+- Does not contain any personal information
+- Used for vote deduplication and contribution tracking
+
+## Ranking Algorithm
+
+Solutions are ranked using:
+
+```
+final_score = env_match × 0.4 + success_rate × 0.3 + vote_score × 0.2 + report_factor × 0.1
+
+env_match = language_match × 0.4 + framework_match × 0.4 + packages_overlap × 0.2
 ```
 
 ## Development
@@ -323,10 +333,14 @@ npm run test:coverage
 
 MIT - see [LICENSE](LICENSE) for details.
 
+## Related Packages
+
+- [@the-magic-tower/fixhive-shared](https://github.com/TheMagicTower/fixhive-shared) - Shared utilities
+- [@the-magic-tower/fixhive-opencode-plugin](https://github.com/TheMagicTower/FixHive) - OpenCode plugin
+
 ## Acknowledgments
 
 - [Claude Code](https://claude.ai/code) - AI coding assistant by Anthropic
 - [Model Context Protocol](https://modelcontextprotocol.io) - MCP specification
 - [Supabase](https://supabase.com) - Backend as a Service
 - [pgvector](https://github.com/pgvector/pgvector) - Vector similarity search
-- [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) - Fast SQLite bindings

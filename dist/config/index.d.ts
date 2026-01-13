@@ -1,5 +1,7 @@
 /**
  * 설정 로더 - 환경 변수에서 설정 로드 및 검증
+ *
+ * CodeCaseDB v2.0: device_id 기반 식별
  */
 import type { FixHiveConfig } from '../types/index.js';
 /**

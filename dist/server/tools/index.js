@@ -1,53 +1,34 @@
 /**
- * 도구 등록 배럴 - 모든 도구 내보내기 및 등록
+ * 도구 등록 배럴 - CodeCaseDB v2.0
+ *
+ * 3개의 핵심 도구:
+ * - search_cases: 에러 솔루션 검색
+ * - report_resolution: 해결책 보고
+ * - vote: 투표 (upvote/downvote/report)
  */
 import { handleToolError } from '../../utils/errors.js';
 // 도구 임포트
-import { searchToolName, searchToolSchema, searchInputSchema, handleSearch, } from './search.tool.js';
-import { resolveToolName, resolveToolSchema, resolveInputSchema, handleResolve, } from './resolve.tool.js';
-import { listToolName, listToolSchema, listInputSchema, handleList, } from './list.tool.js';
+import { searchCasesToolName, searchCasesToolSchema, searchCasesInputSchema, handleSearchCases, } from './search-cases.tool.js';
+import { reportResolutionToolName, reportResolutionToolSchema, reportResolutionInputSchema, handleReportResolution, } from './report-resolution.tool.js';
 import { voteToolName, voteToolSchema, voteInputSchema, handleVote, } from './vote.tool.js';
-import { statsToolName, statsToolSchema, statsInputSchema, handleStats, } from './stats.tool.js';
-import { helpfulToolName, helpfulToolSchema, helpfulInputSchema, handleHelpful, } from './helpful.tool.js';
-import { reportToolName, reportToolSchema, reportInputSchema, handleReport, } from './report.tool.js';
 // 모든 도구 스키마 내보내기
 export const toolSchemas = [
-    searchToolSchema,
-    resolveToolSchema,
-    listToolSchema,
+    searchCasesToolSchema,
+    reportResolutionToolSchema,
     voteToolSchema,
-    statsToolSchema,
-    helpfulToolSchema,
-    reportToolSchema,
 ];
 const toolHandlers = {
-    [searchToolName]: {
-        schema: searchInputSchema,
-        handler: async (args) => handleSearch(searchInputSchema.parse(args)),
+    [searchCasesToolName]: {
+        schema: searchCasesInputSchema,
+        handler: async (args) => handleSearchCases(searchCasesInputSchema.parse(args)),
     },
-    [resolveToolName]: {
-        schema: resolveInputSchema,
-        handler: async (args) => handleResolve(resolveInputSchema.parse(args)),
-    },
-    [listToolName]: {
-        schema: listInputSchema,
-        handler: async (args) => handleList(listInputSchema.parse(args)),
+    [reportResolutionToolName]: {
+        schema: reportResolutionInputSchema,
+        handler: async (args) => handleReportResolution(reportResolutionInputSchema.parse(args)),
     },
     [voteToolName]: {
         schema: voteInputSchema,
         handler: async (args) => handleVote(voteInputSchema.parse(args)),
-    },
-    [statsToolName]: {
-        schema: statsInputSchema,
-        handler: async (args) => handleStats(statsInputSchema.parse(args)),
-    },
-    [helpfulToolName]: {
-        schema: helpfulInputSchema,
-        handler: async (args) => handleHelpful(helpfulInputSchema.parse(args)),
-    },
-    [reportToolName]: {
-        schema: reportInputSchema,
-        handler: async (args) => handleReport(reportInputSchema.parse(args)),
     },
 };
 /**

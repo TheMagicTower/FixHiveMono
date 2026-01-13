@@ -3,11 +3,11 @@
  * PostToolUse Hook Handler - 도구 출력에서 에러 자동 감지
  *
  * Claude Code의 PostToolUse 훅에서 호출됩니다.
- * stdin으로 도구 출력을 받아 에러를 감지하고 로컬에 저장합니다.
+ * CodeCaseDB v2.0: 간소화된 버전 (로컬 저장 없이 감지만)
+ *
+ * TODO: 로컬 캐싱 레이어 추가
  */
 
-import { detectErrors, hasError } from '../core/error-detector.js';
-import { saveError, getErrorByHash } from '../storage/local-store.js';
 import { logger } from '../utils/logger.js';
 
 interface HookInput {
@@ -15,6 +15,27 @@ interface HookInput {
   tool_input: unknown;
   tool_output: string;
   session_id?: string;
+}
+
+/**
+ * 에러 패턴 감지 (간소화 버전)
+ */
+function hasError(output: string): boolean {
+  const errorPatterns = [
+    /error:/i,
+    /exception:/i,
+    /traceback/i,
+    /failed:/i,
+    /fatal:/i,
+    /cannot find/i,
+    /undefined is not/i,
+    /is not defined/i,
+    /syntaxerror/i,
+    /typeerror/i,
+    /referenceerror/i,
+  ];
+
+  return errorPatterns.some((pattern) => pattern.test(output));
 }
 
 async function main(): Promise<void> {
@@ -47,47 +68,21 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  // 에러 감지
-  const errors = detectErrors(tool_output, tool_name);
-
-  if (errors.length === 0) {
-    process.exit(0);
-  }
-
-  logger.info('Errors detected', {
+  logger.info('Potential error detected', {
     toolName: tool_name,
-    errorCount: errors.length,
   });
 
-  // 중복 체크 및 저장
-  for (const error of errors) {
-    const existing = getErrorByHash(error.messageHash);
-
-    if (existing) {
-      logger.debug('Duplicate error skipped', { hash: error.messageHash });
-      continue;
-    }
-
-    saveError(error);
-
-    logger.info('Error saved', {
-      id: error.id,
-      message: error.message.slice(0, 100),
-    });
-  }
-
   // 사용자에게 알림 출력 (stdout)
-  if (errors.length > 0) {
-    console.log(
-      JSON.stringify({
-        fixhive: {
-          detected: errors.length,
-          message: `FixHive detected ${errors.length} error(s). Use fixhive_search to find solutions.`,
-          errorIds: errors.map((e) => e.id),
-        },
-      })
-    );
-  }
+  console.log(
+    JSON.stringify({
+      fixhive: {
+        detected: true,
+        message:
+          'FixHive detected a potential error. Use fixhive_search_cases to find solutions.',
+        hint: 'Normalize the error message before searching for better results.',
+      },
+    })
+  );
 }
 
 main().catch((error) => {

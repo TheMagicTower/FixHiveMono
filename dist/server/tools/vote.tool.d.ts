@@ -1,5 +1,7 @@
 /**
- * fixhive_vote - 솔루션에 투표
+ * vote - CodeCaseDB v2.0 투표
+ *
+ * 해결책의 품질을 평가합니다 (upvote/downvote/report).
  */
 import { z } from 'zod';
 export declare const voteToolName = "fixhive_vote";
@@ -9,11 +11,16 @@ export declare const voteToolSchema: {
     inputSchema: {
         type: "object";
         properties: {
-            knowledgeId: {
+            variant_id: {
                 type: string;
                 description: string;
             };
-            helpful: {
+            value: {
+                type: string;
+                enum: string[];
+                description: string;
+            };
+            reason: {
                 type: string;
                 description: string;
             };
@@ -22,14 +29,17 @@ export declare const voteToolSchema: {
     };
 };
 export declare const voteInputSchema: z.ZodObject<{
-    knowledgeId: z.ZodString;
-    helpful: z.ZodBoolean;
+    variant_id: z.ZodString;
+    value: z.ZodEnum<["up", "down", "report"]>;
+    reason: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    helpful: boolean;
-    knowledgeId: string;
+    value: "up" | "down" | "report";
+    variant_id: string;
+    reason?: string | undefined;
 }, {
-    helpful: boolean;
-    knowledgeId: string;
+    value: "up" | "down" | "report";
+    variant_id: string;
+    reason?: string | undefined;
 }>;
 export type VoteInput = z.infer<typeof voteInputSchema>;
 export declare function handleVote(input: VoteInput): Promise<string>;

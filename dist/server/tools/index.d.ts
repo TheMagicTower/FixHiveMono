@@ -1,5 +1,10 @@
 /**
- * 도구 등록 배럴 - 모든 도구 내보내기 및 등록
+ * 도구 등록 배럴 - CodeCaseDB v2.0
+ *
+ * 3개의 핵심 도구:
+ * - search_cases: 에러 솔루션 검색
+ * - report_resolution: 해결책 보고
+ * - vote: 투표 (upvote/downvote/report)
  */
 export declare const toolSchemas: ({
     name: string;
@@ -7,7 +12,11 @@ export declare const toolSchemas: ({
     inputSchema: {
         type: "object";
         properties: {
-            errorMessage: {
+            error_message: {
+                type: string;
+                description: string;
+            };
+            error_signature: {
                 type: string;
                 description: string;
             };
@@ -18,6 +27,13 @@ export declare const toolSchemas: ({
             framework: {
                 type: string;
                 description: string;
+            };
+            packages: {
+                type: string;
+                description: string;
+                additionalProperties: {
+                    type: string;
+                };
             };
             limit: {
                 type: string;
@@ -32,19 +48,65 @@ export declare const toolSchemas: ({
     inputSchema: {
         type: "object";
         properties: {
-            errorId: {
+            error_message: {
                 type: string;
                 description: string;
             };
-            resolution: {
+            error_signature: {
                 type: string;
                 description: string;
             };
-            resolutionCode: {
+            stack_trace: {
                 type: string;
                 description: string;
             };
-            upload: {
+            cause: {
+                type: string;
+                description: string;
+            };
+            solution: {
+                type: string;
+                description: string;
+            };
+            solution_steps: {
+                type: string;
+                items: {
+                    type: string;
+                };
+                description: string;
+            };
+            code_diff: {
+                type: string;
+                description: string;
+            };
+            language: {
+                type: string;
+                description: string;
+            };
+            framework: {
+                type: string;
+                description: string;
+            };
+            packages: {
+                type: string;
+                description: string;
+                additionalProperties: {
+                    type: string;
+                };
+            };
+            solved: {
+                type: string;
+                description: string;
+            };
+            used_variant_id: {
+                type: string;
+                description: string;
+            };
+            what_was_tried: {
+                type: string;
+                description: string;
+            };
+            time_spent: {
                 type: string;
                 description: string;
             };
@@ -56,16 +118,17 @@ export declare const toolSchemas: ({
     description: string;
     inputSchema: {
         type: "object";
-        properties: {};
-        required: never[];
-    };
-} | {
-    name: string;
-    description: string;
-    inputSchema: {
-        type: "object";
         properties: {
-            knowledgeId: {
+            variant_id: {
+                type: string;
+                description: string;
+            };
+            value: {
+                type: string;
+                enum: string[];
+                description: string;
+            };
+            reason: {
                 type: string;
                 description: string;
             };
@@ -93,7 +156,11 @@ export declare function getToolList(): {
         inputSchema: {
             type: "object";
             properties: {
-                errorMessage: {
+                error_message: {
+                    type: string;
+                    description: string;
+                };
+                error_signature: {
                     type: string;
                     description: string;
                 };
@@ -104,6 +171,13 @@ export declare function getToolList(): {
                 framework: {
                     type: string;
                     description: string;
+                };
+                packages: {
+                    type: string;
+                    description: string;
+                    additionalProperties: {
+                        type: string;
+                    };
                 };
                 limit: {
                     type: string;
@@ -118,19 +192,65 @@ export declare function getToolList(): {
         inputSchema: {
             type: "object";
             properties: {
-                errorId: {
+                error_message: {
                     type: string;
                     description: string;
                 };
-                resolution: {
+                error_signature: {
                     type: string;
                     description: string;
                 };
-                resolutionCode: {
+                stack_trace: {
                     type: string;
                     description: string;
                 };
-                upload: {
+                cause: {
+                    type: string;
+                    description: string;
+                };
+                solution: {
+                    type: string;
+                    description: string;
+                };
+                solution_steps: {
+                    type: string;
+                    items: {
+                        type: string;
+                    };
+                    description: string;
+                };
+                code_diff: {
+                    type: string;
+                    description: string;
+                };
+                language: {
+                    type: string;
+                    description: string;
+                };
+                framework: {
+                    type: string;
+                    description: string;
+                };
+                packages: {
+                    type: string;
+                    description: string;
+                    additionalProperties: {
+                        type: string;
+                    };
+                };
+                solved: {
+                    type: string;
+                    description: string;
+                };
+                used_variant_id: {
+                    type: string;
+                    description: string;
+                };
+                what_was_tried: {
+                    type: string;
+                    description: string;
+                };
+                time_spent: {
                     type: string;
                     description: string;
                 };
@@ -142,16 +262,17 @@ export declare function getToolList(): {
         description: string;
         inputSchema: {
             type: "object";
-            properties: {};
-            required: never[];
-        };
-    } | {
-        name: string;
-        description: string;
-        inputSchema: {
-            type: "object";
             properties: {
-                knowledgeId: {
+                variant_id: {
+                    type: string;
+                    description: string;
+                };
+                value: {
+                    type: string;
+                    enum: string[];
+                    description: string;
+                };
+                reason: {
                     type: string;
                     description: string;
                 };
